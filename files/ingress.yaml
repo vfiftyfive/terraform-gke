@@ -1,0 +1,28 @@
+  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      ingress.kubernetes.io/backends: '{"k8s1-bf00961f-voting-app-vote-80-39328a5d":"HEALTHY"}'
+      ingress.kubernetes.io/forwarding-rule: k8s2-fr-3oiai1iq-voting-app-gke-gotham-ingress-brlsma8v
+      ingress.kubernetes.io/rewrite-target: /
+      ingress.kubernetes.io/target-proxy: k8s2-tp-3oiai1iq-voting-app-gke-gotham-ingress-brlsma8v
+      ingress.kubernetes.io/url-map: k8s2-um-3oiai1iq-voting-app-gke-gotham-ingress-brlsma8v
+    finalizers:
+    - networking.gke.io/ingress-finalizer-V2
+    generation: 1
+    name: gke-gotham-ingress
+  spec:
+    rules:
+    - http:
+        paths:
+        - path: /vote
+          backend:
+            serviceName: vote
+            servicePort: 80
+        - path: /result
+          backend: 
+            serviceName: result  
+            servicePort: 80
+    backend:
+      serviceName: vote
+      servicePort: 80
