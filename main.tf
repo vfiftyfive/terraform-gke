@@ -7,6 +7,8 @@ variable "sa" {}
 variable "zone" {}
 variable "cluster_name" {}
 variable "master_cidr" {}
+variable "nat_gw_name" {}
+variable "gke_router_name" {}
 
 resource "google_container_cluster" "vpc_native_cluster" {
   name               = var.cluster_name
@@ -34,8 +36,11 @@ resource "google_container_cluster" "vpc_native_cluster" {
     cluster_ipv4_cidr_block  = "/16"
     services_ipv4_cidr_block = "/22"
   }
-  
+
 }
+
+#Configure temporary access via oauth
+data "google_client_config" "default" {}
 
 resource "google_compute_network" "gke_vpc" {
   name                    = var.vpc_network_name
@@ -51,5 +56,24 @@ resource "google_compute_subnetwork" "node_subnet" {
 
 data "google_service_account" "gke_sa" {
   account_id = var.sa
+}
+
+resource "google_compute_router" "gke_router" {
+  name    = var.gke_router_name
+  region  = google_compute_subnetwork.node_subnet.region
+  network = google_compute_network.gke_vpc.id
+}
+
+resource "google_compute_router_nat" "nat" {
+  name                               = var.nat_gw_name
+  router                             = google_compute_router.gke_router.name
+  region                             = google_compute_router.gke_router.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
 }
 
