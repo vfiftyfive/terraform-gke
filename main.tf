@@ -9,11 +9,13 @@ variable "cluster_name" {}
 variable "master_cidr" {}
 variable "nat_gw_name" {}
 variable "gke_router_name" {}
+variable "node_count" {}
 
 resource "google_container_cluster" "vpc_native_cluster" {
   name               = var.cluster_name
-  location           = var.zone
-  initial_node_count = 2
+  location           = var.region
+  node_locations     = ["us-central1-a", "us-central1-b"]
+  initial_node_count = var.node_count
 
   network    = google_compute_network.gke_vpc.name
   subnetwork = google_compute_subnetwork.node_subnet.name
